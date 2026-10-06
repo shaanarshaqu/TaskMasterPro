@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="row justify-content-center py-5">
+    <div class="col-12 col-md-6 col-lg-5 text-center">
+        <div class="stat-icon mx-auto mb-3" style="width: 72px; height: 72px; background-color: #FEF2F2; color: #EF4444; font-size: 2rem;">
+            <i class="bi bi-shield-x"></i>
+        </div>
+        <h3 class="fw-bold text-dark">Access Denied</h3>
+        <p class="text-muted">You do not have administrative privileges to access this report or resource.</p>
+        <div class="mt-4">
+            <a asp-controller="Todos" asp-action="Index" class="btn btn-primary-custom">
+                <i class="bi bi-arrow-left me-1"></i> Back to Tasks
+            </a>
+        </div>
+    </div>
+</div>

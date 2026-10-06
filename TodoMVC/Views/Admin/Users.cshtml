@@ -1,0 +1,130 @@
+@model List<TodoMVC.Models.ViewModels.UserSummaryRow>
+@{
+    ViewData["Title"] = "Admin - All Users";
+}
+
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary text-white py-1 px-2" style="font-size: 0.75rem;">ADMIN DIRECTORY</span>
+            <h2 class="fw-bold tracking-tight text-dark mb-0">App Users Directory</h2>
+        </div>
+        <p class="text-muted small mb-0 mt-1">
+            Complete list of registered users, their roles, activity, and task completion metrics.
+        </p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <a asp-action="Reports" class="btn btn-ghost-custom">
+            <i class="bi bi-pie-chart me-1"></i> View Category Reports
+        </a>
+    </div>
+</div>
+
+<!-- Users Table Card -->
+<div class="app-card overflow-hidden">
+    <div class="app-card-header">
+        <div class="fw-bold text-dark">
+            <i class="bi bi-people-fill text-primary me-2"></i> All Registered Users (@Model.Count)
+        </div>
+        <div class="text-muted small">
+            Admin roles can be modified directly in the SQL Server <code>Users</code> table.
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table custom-table">
+            <thead>
+                <tr>
+                    <th>User Profile</th>
+                    <th>Email Address</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined Date</th>
+                    <th>Last Active</th>
+                    <th class="text-center">Total Tasks</th>
+                    <th class="text-center">Completion %</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    var isUserAdmin = user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase);
+
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" 
+                                     style="width: 38px; height: 38px; background: @(isUserAdmin ? "linear-gradient(135deg, #4F46E5, #7C3AED)" : "#64748B");">
+                                    @(user.FullName.Length > 0 ? user.FullName[0].ToString().ToUpper() : "U")
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">@user.FullName</div>
+                                    <div class="text-muted small">@@@user.Username</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-muted small"><i class="bi bi-envelope me-1"></i> @user.Email</span>
+                        </td>
+                        <td>
+                            @if (isUserAdmin)
+                            {
+                                <span class="badge bg-primary text-white px-2 py-1" style="font-size: 0.75rem;">
+                                    <i class="bi bi-shield-check me-1"></i> ADMIN
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-secondary border px-2 py-1" style="font-size: 0.75rem;">
+                                    USER
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-success-light text-success px-2 py-1" style="font-size: 0.75rem;">
+                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.45rem;"></i> Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger-light text-danger px-2 py-1" style="font-size: 0.75rem;">
+                                    Inactive
+                                </span>
+                            }
+                        </td>
+                        <td class="text-muted small">
+                            @user.CreatedAt.ToString("MMM dd, yyyy")
+                        </td>
+                        <td class="text-muted small">
+                            @(user.LastLoginAt.HasValue ? user.LastLoginAt.Value.ToString("MMM dd, HH:mm") : "Never")
+                        </td>
+                        <td class="text-center">
+                            <span class="fw-bold text-dark">@user.TotalTasks</span>
+                            <div class="text-muted" style="font-size: 0.75rem;">
+                                @user.CompletedTasks done, @user.InProgressTasks active
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="fw-bold @(user.CompletionRate >= 70 ? "text-success" : (user.CompletionRate >= 40 ? "text-warning" : "text-muted"))">
+                                @user.CompletionRate%
+                            </span>
+                            <div class="progress mx-auto mt-1" style="width: 60px; height: 5px;">
+                                <div class="progress-bar @(user.CompletionRate >= 70 ? "bg-success" : "bg-warning")" style="width: @user.CompletionRate%;"></div>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <a asp-controller="Todos" asp-action="Index" asp-route-userId="@user.Id" class="btn btn-sm btn-outline-primary" title="View tasks created by this user">
+                                <i class="bi bi-eye me-1"></i> View Tasks
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

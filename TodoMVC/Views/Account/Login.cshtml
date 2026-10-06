@@ -1,0 +1,180 @@
+@model TodoMVC.Models.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Welcome - Sign In or Register";
+    var activeTab = ViewBag.ActiveTab as string ?? "login";
+    var registerModel = ViewBag.RegisterModel as TodoMVC.Models.ViewModels.RegisterViewModel ?? new TodoMVC.Models.ViewModels.RegisterViewModel();
+}
+
+<div class="row justify-content-center align-items-center min-vh-75 py-5">
+    <div class="col-12 col-md-8 col-lg-5 col-xl-4">
+        <!-- Brand Header -->
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-4 shadow-sm mb-3" 
+                 style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; width: 64px; height: 64px;">
+                <i class="bi bi-check2-all fs-1"></i>
+            </div>
+            <h2 class="fw-bold tracking-tight text-dark mb-1">TaskMaster Pro</h2>
+            <p class="text-muted small">Streamlined scheduling, task tracking & KPI analytics</p>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="app-card border-0 shadow-lg p-4 p-md-5">
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-pills nav-fill bg-light p-1 rounded-3 mb-4" id="authTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-2 fw-semibold py-2 @(activeTab == "login" ? "active" : "")" 
+                            id="login-tab" data-bs-toggle="tab" data-bs-target="#login-panel" type="button" role="tab">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-2 fw-semibold py-2 @(activeTab == "register" ? "active" : "")" 
+                            id="register-tab" data-bs-toggle="tab" data-bs-target="#register-panel" type="button" role="tab">
+                        <i class="bi bi-person-plus me-1"></i> Create Account
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="authTabsContent">
+                <!-- ================= SIGN IN TAB ================= -->
+                <div class="tab-pane fade @(activeTab == "login" ? "show active" : "")" id="login-panel" role="tabpanel">
+                    <form asp-controller="Account" asp-action="Login" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ReturnUrl" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger p-2 small rounded-3 mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label small fw-semibold text-secondary">Username or Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                                <input asp-for="Username" class="form-control border-start-0 ps-0" placeholder="e.g. shaan" required autocomplete="username" />
+                            </div>
+                            <span asp-validation-for="Username" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label asp-for="Password" class="form-label small fw-semibold text-secondary mb-0">Password</label>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                                <input asp-for="Password" type="password" id="loginPasswordInput" class="form-control border-start-0 border-end-0 ps-0" placeholder="••••••••" required autocomplete="current-password" />
+                                <button class="btn btn-outline-secondary border-start-0 bg-light" type="button" onclick="togglePasswordVisibility('loginPasswordInput', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMeCheck" />
+                            <label class="form-check-label small text-muted" for="rememberMeCheck">
+                                Keep me signed in for 14 days
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom w-100 py-2 justify-content-center">
+                            <span>Sign In to Workspace</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ================= CREATE ACCOUNT (SIGN UP) TAB ================= -->
+                <div class="tab-pane fade @(activeTab == "register" ? "show active" : "")" id="register-panel" role="tabpanel">
+                    <form asp-controller="Account" asp-action="Register" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        @if (ViewData.ModelState.ContainsKey("RegisterUsername") || ViewData.ModelState.ContainsKey("RegisterEmail"))
+                        {
+                            <div class="alert alert-danger p-2 small rounded-3 mb-3">
+                                @Html.ValidationMessage("RegisterUsername")
+                                @Html.ValidationMessage("RegisterEmail")
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-secondary">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-at"></i></span>
+                                <input name="Username" value="@registerModel.Username" class="form-control border-start-0 ps-0" placeholder="shaan_99" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-secondary">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-card-text"></i></span>
+                                <input name="FullName" value="@registerModel.FullName" class="form-control border-start-0 ps-0" placeholder="Shaan Miller" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-secondary">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                                <input name="Email" type="email" value="@registerModel.Email" class="form-control border-start-0 ps-0" placeholder="shaan@example.com" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-secondary">Create Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-shield-lock"></i></span>
+                                <input name="Password" type="password" id="regPasswordInput" class="form-control border-start-0 border-end-0 ps-0" placeholder="At least 6 characters" required />
+                                <button class="btn btn-outline-secondary border-start-0 bg-light" type="button" onclick="togglePasswordVisibility('regPasswordInput', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-secondary">Confirm Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-check2-circle"></i></span>
+                                <input name="ConfirmPassword" type="password" id="regConfirmPasswordInput" class="form-control border-start-0 border-end-0 ps-0" placeholder="Repeat password" required />
+                                <button class="btn btn-outline-secondary border-start-0 bg-light" type="button" onclick="togglePasswordVisibility('regConfirmPasswordInput', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border p-2 mb-4 d-flex gap-2 align-items-center">
+                            <i class="bi bi-info-circle-fill text-primary"></i>
+                            <div style="font-size: 0.775rem;" class="text-muted">
+                                Registered accounts are created with standard <strong>user</strong> permissions.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom w-100 py-2 justify-content-center">
+                            <span>Register & Enter</span>
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Info -->
+        <div class="text-center mt-4 text-muted small">
+            <span>Powered by ASP.NET Core &bull; SQL Server LocalDB &bull; SignalR</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.className = "bi bi-eye-slash";
+            } else {
+                input.type = "password";
+                icon.className = "bi bi-eye";
+            }
+        }
+    </script>
+}

@@ -1,0 +1,270 @@
+@model TodoMVC.Models.ViewModels.AdminKpiViewModel
+@{
+    ViewData["Title"] = "Admin - Category KPI Reports";
+    var months = new[]
+    {
+        new { Id = 1, Name = "January" },
+        new { Id = 2, Name = "February" },
+        new { Id = 3, Name = "March" },
+        new { Id = 4, Name = "April" },
+        new { Id = 5, Name = "May" },
+        new { Id = 6, Name = "June" },
+        new { Id = 7, Name = "July" },
+        new { Id = 8, Name = "August" },
+        new { Id = 9, Name = "September" },
+        new { Id = 10, Name = "October" },
+        new { Id = 11, Name = "November" },
+        new { Id = 12, Name = "December" }
+    };
+}
+
+<!-- Admin Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary text-white py-1 px-2" style="font-size: 0.75rem;">ADMIN REPORT</span>
+            <h2 class="fw-bold tracking-tight text-dark mb-0">Category-Based Todo Report & KPIs</h2>
+        </div>
+        <p class="text-muted small mb-0 mt-1">
+            Analyze category utilization, completion rates, and workload trends with year and month filters.
+        </p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <a asp-action="Users" class="btn btn-ghost-custom">
+            <i class="bi bi-people me-1"></i> View All App Users
+        </a>
+    </div>
+</div>
+
+<!-- Year & Month Filter Card -->
+<div class="app-card p-3 mb-4">
+    <form method="get" asp-action="Reports" class="row g-2 align-items-center">
+        <div class="col-12 col-sm-4 col-md-3">
+            <label class="form-label small fw-semibold text-secondary mb-1">
+                <i class="bi bi-calendar3 me-1 text-primary"></i> Year Filter
+            </label>
+            <select name="year" class="form-select form-select-sm">
+                @foreach (var y in Model.AvailableYears)
+                {
+                    <option value="@y" selected="@(Model.SelectedYear == y)">@y</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-12 col-sm-4 col-md-3">
+            <label class="form-label small fw-semibold text-secondary mb-1">
+                <i class="bi bi-calendar-month me-1 text-primary"></i> Month Filter
+            </label>
+            <select name="month" class="form-select form-select-sm">
+                <option value="">All Months (Full Year)</option>
+                @foreach (var m in months)
+                {
+                    <option value="@m.Id" selected="@(Model.SelectedMonth == m.Id)">@m.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-12 col-sm-4 col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-sm btn-primary w-100 py-2">
+                <i class="bi bi-funnel-fill me-1"></i> Filter Report
+            </button>
+        </div>
+
+        <div class="col-12 col-md-4 text-md-end text-muted small mt-2 mt-md-0">
+            Reporting Period: 
+            <strong>
+                @(Model.SelectedMonth.HasValue ? $"{months.FirstOrDefault(m => m.Id == Model.SelectedMonth.Value)?.Name} {Model.SelectedYear}" : $"All of {Model.SelectedYear}")
+            </strong>
+        </div>
+    </form>
+</div>
+
+<!-- High-Level Period KPIs Strip -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="text-muted small fw-semibold text-uppercase">Total Period Todos</div>
+            <h3 class="fw-bold text-dark mt-1 mb-0">@Model.TotalTodosInPeriod</h3>
+            <div class="small text-muted mt-2">
+                <i class="bi bi-clock me-1"></i> @Model.TotalHoursScheduledInPeriod hrs total
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="text-muted small fw-semibold text-uppercase">Period Completion Rate</div>
+            <h3 class="fw-bold text-success mt-1 mb-0">@Model.OverallCompletionRate%</h3>
+            <div class="small text-muted mt-2">
+                <i class="bi bi-check2-circle text-success me-1"></i> @Model.CompletedTodosInPeriod completed
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="text-muted small fw-semibold text-uppercase">Active / In Progress</div>
+            <h3 class="fw-bold text-warning mt-1 mb-0">@Model.InProgressTodosInPeriod</h3>
+            <div class="small text-muted mt-2">
+                <i class="bi bi-pause-circle text-purple me-1"></i> @Model.HoldTodosInPeriod on hold
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="text-muted small fw-semibold text-uppercase">Users In System</div>
+            <h3 class="fw-bold text-primary mt-1 mb-0">@Model.TotalUsersCount</h3>
+            <div class="small text-muted mt-2">
+                <i class="bi bi-person-check text-primary me-1"></i> @Model.ActiveUsersCount active accounts
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Category Task Distribution Chart -->
+    <div class="col-12 col-lg-7">
+        <div class="app-card h-100 p-4">
+            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-bar-chart-line-fill text-primary"></i> Category Completion Comparison
+            </h5>
+            <div style="position: relative; height: 280px;">
+                <canvas id="categoryComparisonChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Share Donut -->
+    <div class="col-12 col-lg-5">
+        <div class="app-card h-100 p-4">
+            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-pie-chart-fill text-indigo"></i> Category Share in Period
+            </h5>
+            <div style="position: relative; height: 280px;">
+                <canvas id="categoryShareChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category-based KPI Table -->
+<div class="app-card overflow-hidden mb-4">
+    <div class="app-card-header">
+        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-table text-primary"></i> Category-Specific Performance Breakdown
+        </h5>
+        <span class="badge bg-light text-muted">@Model.CategoryReport.Count Categories Analyzed</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table custom-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th class="text-center">Total Tasks</th>
+                    <th class="text-center">Completed</th>
+                    <th class="text-center">In Progress</th>
+                    <th class="text-center">Pending</th>
+                    <th class="text-center">Hold</th>
+                    <th class="text-center">Completion %</th>
+                    <th class="text-end">Scheduled Hours</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.CategoryReport)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="stat-icon" style="width: 32px; height: 32px; background-color: @row.ColorCode; color: white; font-size: 0.9rem;">
+                                    <i class="bi @row.Icon"></i>
+                                </div>
+                                <span class="fw-bold text-dark">@row.CategoryName</span>
+                            </div>
+                        </td>
+                        <td class="text-center fw-semibold">@row.TotalTodos</td>
+                        <td class="text-center text-success fw-semibold">@row.Completed</td>
+                        <td class="text-center text-warning fw-semibold">@row.InProgress</td>
+                        <td class="text-center text-secondary">@row.Pending</td>
+                        <td class="text-center text-purple" style="color: #7C3AED;">@row.Hold</td>
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <span class="fw-bold @(row.CompletionRate >= 70 ? "text-success" : (row.CompletionRate >= 40 ? "text-warning" : "text-muted"))">
+                                    @row.CompletionRate%
+                                </span>
+                                <div class="progress d-none d-sm-block" style="width: 50px; height: 6px;">
+                                    <div class="progress-bar @(row.CompletionRate >= 70 ? "bg-success" : "bg-warning")" style="width: @row.CompletionRate%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-end fw-medium text-dark">@row.TotalHours hrs</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const categories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategoryReport.Select(c => c.CategoryName)));
+            const completed = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategoryReport.Select(c => c.Completed)));
+            const inProgress = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategoryReport.Select(c => c.InProgress)));
+            const pending = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategoryReport.Select(c => c.Pending)));
+            const totals = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategoryReport.Select(c => c.TotalTodos)));
+            const colors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategoryReport.Select(c => c.ColorCode)));
+
+            // Stacked bar chart
+            const barCtx = document.getElementById('categoryComparisonChart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [
+                        { label: 'Completed', data: completed, backgroundColor: '#10B981', borderRadius: 4 },
+                        { label: 'In Progress', data: inProgress, backgroundColor: '#F59E0B', borderRadius: 4 },
+                        { label: 'Pending', data: pending, backgroundColor: '#94A3B8', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Donut chart of total per category
+            const donutCtx = document.getElementById('categoryShareChart').getContext('2d');
+            new Chart(donutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: totals,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        });
+    </script>
+}

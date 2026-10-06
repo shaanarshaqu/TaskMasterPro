@@ -1,0 +1,317 @@
+@model TodoMVC.Models.ViewModels.UserKpiViewModel
+@{
+    ViewData["Title"] = "My KPI Overview";
+}
+
+<!-- Dashboard Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold tracking-tight text-dark mb-0">KPI Performance Dashboard</h2>
+            <span class="badge bg-light text-primary border px-2 py-1">Personal Overview</span>
+        </div>
+        <p class="text-muted small mb-0 mt-1">
+            Real-time breakdown of your productivity, completion trends, and time scheduling.
+        </p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn-primary-custom" onclick="openCreateTodoModal()">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>Schedule Task</span>
+        </button>
+    </div>
+</div>
+
+<!-- Primary Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase tracking-wider">Total Tasks</span>
+                    <h3 class="fw-bold text-dark mt-1 mb-0">@Model.TotalTodos</h3>
+                    <div class="small text-muted mt-2">
+                        <i class="bi bi-clock me-1"></i> @Model.TotalScheduledHours hrs scheduled
+                    </div>
+                </div>
+                <div class="stat-icon" style="background-color: #EEF2FF; color: #4F46E5;">
+                    <i class="bi bi-collection-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase tracking-wider">Completion Rate</span>
+                    <h3 class="fw-bold text-success mt-1 mb-0">@Model.CompletionRate%</h3>
+                    <div class="small text-muted mt-2">
+                        <i class="bi bi-check2-all text-success me-1"></i> @Model.CompletedTodos completed
+                    </div>
+                </div>
+                <div class="stat-icon" style="background-color: #ECFDF5; color: #10B981;">
+                    <i class="bi bi-pie-chart-fill"></i>
+                </div>
+            </div>
+            <!-- Progress Bar -->
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: @Model.CompletionRate%;" aria-valuenow="@Model.CompletionRate" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase tracking-wider">In Progress</span>
+                    <h3 class="fw-bold text-warning mt-1 mb-0">@Model.InProgressTodos</h3>
+                    <div class="small text-muted mt-2">
+                        <i class="bi bi-arrow-repeat text-warning me-1"></i> Active execution
+                    </div>
+                </div>
+                <div class="stat-icon" style="background-color: #FFFBEB; color: #D97706;">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase tracking-wider">Overdue & Pending</span>
+                    <div class="d-flex align-items-baseline gap-2 mt-1">
+                        <h3 class="fw-bold @(Model.OverdueTodos > 0 ? "text-danger" : "text-dark") mb-0">@Model.OverdueTodos</h3>
+                        <span class="text-muted small">/ @Model.PendingTodos pending</span>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        <i class="bi bi-exclamation-circle text-danger me-1"></i> Requires attention
+                    </div>
+                </div>
+                <div class="stat-icon" style="background-color: #FEF2F2; color: #EF4444;">
+                    <i class="bi bi-alarm-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-4">
+    <!-- Status Breakdown Donut -->
+    <div class="col-12 col-lg-5">
+        <div class="app-card h-100 p-4">
+            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-pie-chart text-primary"></i> Status Distribution
+            </h5>
+            <div style="position: relative; height: 260px;">
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="row g-2 text-center mt-3 pt-2 border-top">
+                <div class="col-3">
+                    <span class="badge bg-light text-muted border d-block py-1">Pending: @Model.PendingTodos</span>
+                </div>
+                <div class="col-3">
+                    <span class="badge bg-warning-light text-warning border d-block py-1">Active: @Model.InProgressTodos</span>
+                </div>
+                <div class="col-3">
+                    <span class="badge bg-light text-purple border d-block py-1" style="color: #7C3AED;">Hold: @Model.HoldTodos</span>
+                </div>
+                <div class="col-3">
+                    <span class="badge bg-success-light text-success border d-block py-1">Done: @Model.CompletedTodos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Allocation Bar Chart -->
+    <div class="col-12 col-lg-7">
+        <div class="app-card h-100 p-4">
+            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-bar-chart-steps text-indigo"></i> Category Distribution
+            </h5>
+            <div style="position: relative; height: 260px;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3 pt-2 border-top">
+                @foreach (var cat in Model.CategoryBreakdown)
+                {
+                    <span class="badge bg-light text-dark border px-2 py-1" style="border-left: 3px solid @cat.ColorCode !important;">
+                        @cat.CategoryName: @cat.Count (@cat.Percentage%)
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Schedule & Upcoming Deadlines -->
+<div class="row g-4">
+    <!-- Today's Scheduled Tasks -->
+    <div class="col-12 col-lg-6">
+        <div class="app-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar2-day text-primary"></i> Today's Schedule
+                </h5>
+                <span class="badge bg-light text-secondary">@Model.TodayTodos.Count tasks</span>
+            </div>
+
+            @if (!Model.TodayTodos.Any())
+            {
+                <div class="text-center py-4 text-muted small bg-light rounded-3 p-3">
+                    <i class="bi bi-calendar-check fs-4 d-block mb-1 text-secondary"></i>
+                    No tasks scheduled for today. Great job or schedule new ones!
+                </div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush gap-2">
+                    @foreach (var task in Model.TodayTodos)
+                    {
+                        var statusClass = task.Status.ToLowerInvariant() switch
+                        {
+                            "completed" => "status-completed",
+                            "inprogress" => "status-inprogress",
+                            "hold" => "status-hold",
+                            _ => "status-pending"
+                        };
+
+                        <div class="list-group-item bg-light rounded-3 border p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="category-pill" style="border-left: 3px solid @task.CategoryColor;">
+                                        @task.CategoryName
+                                    </span>
+                                    <span class="badge-status @statusClass">@task.Status</span>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1">@task.Title</h6>
+                                <div class="text-muted small">
+                                    <i class="bi bi-clock me-1"></i> @task.StartTime.ToString("HH:mm") &ndash; @task.ExpectedEndTime.ToString("HH:mm")
+                                </div>
+                            </div>
+                            <div>
+                                <a asp-controller="Todos" asp-action="Index" class="btn btn-sm btn-ghost-custom">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Upcoming Tasks -->
+    <div class="col-12 col-lg-6">
+        <div class="app-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-hourglass-bottom text-warning"></i> Next Up
+                </h5>
+                <a asp-controller="Todos" asp-action="Index" class="small text-primary text-decoration-none">
+                    View All <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            @if (!Model.UpcomingTodos.Any())
+            {
+                <div class="text-center py-4 text-muted small bg-light rounded-3 p-3">
+                    <i class="bi bi-emoji-smile fs-4 d-block mb-1 text-secondary"></i>
+                    All caught up! No upcoming tasks pending.
+                </div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush gap-2">
+                    @foreach (var task in Model.UpcomingTodos)
+                    {
+                        <div class="list-group-item bg-light rounded-3 border p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="category-pill" style="border-left: 3px solid @task.CategoryColor;">
+                                        @task.CategoryName
+                                    </span>
+                                    <span class="badge-priority priority-@task.Priority.ToLower()">@task.Priority</span>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1">@task.Title</h6>
+                                <div class="text-muted small">
+                                    <i class="bi bi-calendar3 me-1"></i> @task.StartTime.ToString("MMM dd, yyyy HH:mm")
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-white text-dark border">
+                                    @((task.ExpectedEndTime - task.StartTime).TotalHours.ToString("0.1")) hrs
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Status Doughnut Chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'In Progress', 'On Hold', 'Completed'],
+                    datasets: [{
+                        data: [@Model.PendingTodos, @Model.InProgressTodos, @Model.HoldTodos, @Model.CompletedTodos],
+                        backgroundColor: ['#64748B', '#F59E0B', '#8B5CF6', '#10B981'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // Category Bar Chart
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            const catLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategoryBreakdown.Select(c => c.CategoryName)));
+            const catCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategoryBreakdown.Select(c => c.Count)));
+            const catColors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CategoryBreakdown.Select(c => c.ColorCode)));
+
+            new Chart(catCtx, {
+                type: 'bar',
+                data: {
+                    labels: catLabels.length > 0 ? catLabels : ['No Data'],
+                    datasets: [{
+                        label: 'Tasks',
+                        data: catCounts.length > 0 ? catCounts : [0],
+                        backgroundColor: catColors.length > 0 ? catColors : ['#4F46E5'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+    </script>
+}
